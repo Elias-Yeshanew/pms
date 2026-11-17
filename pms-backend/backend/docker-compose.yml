@@ -1,0 +1,43 @@
+# One installation = one copy of this stack per client.
+# 1) cp deploy/.env.production.example .env   and fill in every value   2) docker compose up -d   3) docker compose run --rm api node dist/seed/seed-cli.js (first run only)
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pms
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      POSTGRES_DB: pms
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pms -d pms"]
+      interval: 10s
+      retries: 10
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://pms:${DB_PASSWORD}@db:5432/pms
+      NODE_ENV: production
+      TRUST_PROXY: "1"
+    volumes:
+      - uploads:/data/uploads
+    ports:
+      - "127.0.0.1:3000:3000"   # put nginx / Caddy (HTTPS) in front; never expose this port directly
+  backup:
+    image: postgres:16
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      PGPASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./backups:/backups
+    entrypoint: ["/bin/sh", "-c", "while true; do pg_dump -h db -U pms -Fc pms > /backups/pms-$$(date +%Y%m%d-%H%M).dump && find /backups -name 'pms-*.dump' -mtime +14 -delete; sleep 86400; done"]
+volumes:
+  pgdata:
+  uploads:
