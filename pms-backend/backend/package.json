@@ -5,6 +5,7 @@
   "description": "Pharmacy Management System - backend (NestJS, PostgreSQL)",
   "scripts": {
     "build": "nest build",
+    "build:client": "npm --prefix ../../pms-frontend/frontend run build",
     "start": "node --env-file-if-exists=.env dist/main.js",
     "start:dev": "nest start --watch",
     "migrate": "node --env-file-if-exists=.env -r ts-node/register src/database/migrate-cli.ts",
