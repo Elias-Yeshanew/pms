@@ -191,7 +191,8 @@ export function ImportPage() {
       <div className="card space-y-3">
         <div className="flex flex-wrap items-center gap-3"><ActionButton className="btn-ghost" run={() => api.download('/products/import/template')}>Download template</ActionButton>
           <input ref={ref} type="file" accept=".csv,text/csv" className="text-sm" />
-          <label className="flex items-center gap-1 text-sm"><input type="checkbox" checked={autoCreate} onChange={(e) => setAutoCreate(e.target.checked)} />Create missing categories, forms, manufacturers and units</label>
+          {/* The server stores this choice with the preview and reuses it on Import, so changing it discards the preview. */}
+          <label className="flex items-center gap-1 text-sm"><input type="checkbox" checked={autoCreate} onChange={(e) => { setAutoCreate(e.target.checked); setJob(null); setResult(null); }} />Create missing categories and manufacturers</label>
           <ActionButton className="btn-primary" run={async () => { const f = ref.current?.files?.[0]; if (!f) throw new Error('Choose a CSV file first.'); setResult(null); setJob(await api.upload('POST', `/products/import/preview${autoCreate ? '?autoCreate=true' : ''}`, f)); }}>Preview</ActionButton></div>
         <p className="text-xs text-slate-500">Dates and prices use plain numbers (e.g. 12.50). Packs are written like <code>strip=10;box=100</code>.</p>
       </div>

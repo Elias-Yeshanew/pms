@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, Row } from '../lib/api';
 import { useAuth, useBranch } from '../lib/auth';
@@ -55,6 +56,12 @@ export function ReorderPage() {
   const wh = useLookup('/warehouses'); const [sel, setSel] = useState<Record<string, string>>({}); const [warehouseId, setWarehouseId] = useState('');
   const myWh = (wh.data ?? []).filter((w) => w.branch_id === branchId);
   const chosen = Object.entries(sel).filter(([, v]) => decimalRe.test(v) && Number(v) > 0);
+  // Pick the store when the branch has exactly one; drop a choice that belongs to another branch after switching.
+  useEffect(() => {
+    if (myWh.length === 1 && warehouseId !== myWh[0].id) setWarehouseId(myWh[0].id);
+    else if (warehouseId && !myWh.some((w) => w.id === warehouseId)) setWarehouseId('');
+  }, [myWh.map((w) => w.id).join(), warehouseId]); // eslint-disable-line
+  const missing = !chosen.length ? 'Tick at least one product and enter a quantity.' : !warehouseId ? 'Choose where the goods should be delivered.' : '';
   return (
     <div>
       <PageHeader title="What to reorder" subtitle="Products at or below their reorder level, with a suggested quantity. Tick what you want and make a purchase request." />
@@ -62,8 +69,12 @@ export function ReorderPage() {
         <div className="card overflow-hidden p-0 shadow-xs border border-slate-200 dark:border-slate-800"><table className="min-w-full"><thead><tr><th className="th" /><th className="th">Product</th><th className="th text-right">Available</th><th className="th text-right">Reorder level</th><th className="th text-right">Suggested</th><th className="th w-28">Order qty (base)</th></tr></thead><tbody>
           {q.data.map((r) => { const id = r.product_id; return <tr key={id} className="border-t border-slate-100 hover:bg-slate-50/70 transition-colors dark:border-slate-800 dark:hover:bg-slate-800/40"><td className="td"><input type="checkbox" checked={id in sel} onChange={(e) => { const n = { ...sel }; if (e.target.checked) n[id] = String(Number(r.suggested_base_quantity ?? 0) || ''); else delete n[id]; setSel(n); }} /></td><td className="td font-medium">{r.name ?? r.product_name}<div className="text-xs text-slate-500">{r.sku}</div></td><td className="td text-right tabular-nums">{Number(r.available ?? r.on_hand ?? 0)}</td><td className="td text-right tabular-nums">{Number(r.reorder_level ?? 0)}</td><td className="td text-right tabular-nums font-semibold text-brand-700 dark:text-brand-300">{Number(r.suggested_base_quantity ?? 0)}</td><td className="td">{id in sel && <input className="input py-1 font-semibold" inputMode="decimal" value={sel[id]} onChange={(e) => setSel({ ...sel, [id]: e.target.value })} />}</td></tr>; })}
         </tbody></table></div>
-        {can('procurement.request') && <div className="mt-3 flex flex-wrap items-end gap-2.5 rounded border border-slate-200 bg-white p-3 shadow-xs dark:border-slate-800 dark:bg-slate-900"><div><label className="label">Deliver to</label><select className="input" value={warehouseId} onChange={(e) => setWarehouseId(e.target.value)}><option value="">Select warehouse…</option>{myWh.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select></div>
-          <ActionButton className="btn-primary" disabled={!chosen.length || !warehouseId} run={async () => { await api.post('/purchase-requests', { warehouseId, items: chosen.map(([productId, quantity]) => ({ productId, quantity })) }); toast.ok('Purchase request created'); setSel({}); }}>Create purchase request</ActionButton></div>}
+        {can('procurement.request') && <div className="mt-3 flex flex-wrap items-end gap-2.5 rounded border border-slate-200 bg-white p-3 shadow-xs dark:border-slate-800 dark:bg-slate-900"><div><label className="label">Deliver to</label>
+            {wh.isSuccess && !myWh.length
+              ? <p className="py-1.5 text-sm text-slate-600 dark:text-slate-300">This branch has no store yet. {can('warehouses.manage') ? <Link className="font-semibold text-brand-700 underline dark:text-brand-300" to="/admin/warehouses">Add one in Stores and shelves</Link> : 'Ask an administrator to add one.'}</p>
+              : <select className="input" value={warehouseId} onChange={(e) => setWarehouseId(e.target.value)}><option value="">Select warehouse…</option>{myWh.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select>}</div>
+          <ActionButton className="btn-primary" disabled={!!missing} run={async () => { await api.post('/purchase-requests', { warehouseId, items: chosen.map(([productId, quantity]) => ({ productId, quantity })) }); toast.ok('Purchase request created'); setSel({}); }}>Create purchase request</ActionButton>
+          {missing && <span className="pb-2 text-xs text-slate-500">{missing}</span>}</div>}
       </>}
     </div>
   );
