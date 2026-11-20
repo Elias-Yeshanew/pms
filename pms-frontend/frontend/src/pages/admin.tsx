@@ -57,7 +57,14 @@ export const EmployeesPage = () => <ResourcePage cfg={{
   title: 'Employees', path: '/employees', searchable: true,
   columns: [{ key: 'full_name', header: 'Name' }, { key: 'job_title', header: 'Job title' }, { key: 'branch_id', header: 'Branch', render: (r) => <BranchName id={r.branch_id} /> }, { key: 'phone', header: 'Phone' }, { key: 'employment_status', header: 'Status', type: 'badge' }],
   create: { permission: 'employees.manage', fields: [{ name: 'fullName', label: 'Full name', required: true }, { name: 'branchId', label: 'Branch', type: 'lookup', lookup: branchLookup, required: true }, { name: 'departmentId', label: 'Department', type: 'lookup', lookup: { path: '/departments' } }, { name: 'jobTitle', label: 'Job title' }, { name: 'hireDate', label: 'Hire date', type: 'date' }, { name: 'phone', label: 'Phone' }, { name: 'email', label: 'Email', type: 'email' }] },
-  edit: { permission: 'employees.manage', fields: [{ name: 'fullName', label: 'Full name', required: true }, { name: 'branchId', label: 'Branch', type: 'lookup', lookup: branchLookup }, { name: 'jobTitle', label: 'Job title' }, { name: 'phone', label: 'Phone' }, { name: 'email', label: 'Email', type: 'email' }, { name: 'employmentStatus', label: 'Employment', type: 'select', options: ['active', 'on_leave', 'terminated'].map((v) => ({ value: v, label: label(v) })) }] },
+  edit: { permission: 'employees.manage', fields: [{ name: 'fullName', label: 'Full name', required: true }, { name: 'branchId', label: 'Branch', type: 'lookup', lookup: branchLookup }, { name: 'departmentId', label: 'Department', type: 'lookup', lookup: { path: '/departments' } }, { name: 'jobTitle', label: 'Job title' }, { name: 'phone', label: 'Phone' }, { name: 'email', label: 'Email', type: 'email' }, { name: 'employmentStatus', label: 'Employment', type: 'select', options: ['active', 'on_leave', 'terminated'].map((v) => ({ value: v, label: label(v) })) }] },
+}} />;
+
+// The API can only list and create departments (no rename or delete), so this page has no edit form.
+export const DepartmentsPage = () => <ResourcePage cfg={{
+  title: 'Departments', subtitle: 'Used to group employees, for example Dispensary, Store or Finance.', path: '/departments', detail: false,
+  columns: [{ key: 'name', header: 'Name' }],
+  create: { permission: 'employees.manage', fields: [{ name: 'name', label: 'Name', required: true }] },
 }} />;
 
 // ---------- users ----------

@@ -51,6 +51,7 @@ export const NAV: NavGroup[] = [
     { to: '/admin/warehouses', label: 'Stores and shelves', permission: 'warehouses.read' },
     { to: '/admin/registers', label: 'Cash registers', permission: 'registers.read' },
     { to: '/admin/employees', label: 'Employees', permission: 'employees.read' },
+    { to: '/admin/departments', label: 'Departments', permission: 'employees.read' },
     { to: '/admin/users', label: 'Users', permission: 'users.read' },
     { to: '/admin/roles', label: 'Roles and permissions', permission: 'roles.read' },
     { to: '/admin/catalog-lists', label: 'Product lists', permission: 'products.read' },

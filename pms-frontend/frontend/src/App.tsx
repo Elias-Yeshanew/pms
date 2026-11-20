@@ -25,7 +25,7 @@ const R: Array<[string, React.LazyExoticComponent<React.ComponentType>]> = [
   ['/receipts', L(buying, 'ReceiptsPage')], ['/supplier-invoices', L(buying, 'SupplierInvoicesPage')], ['/supplier-payments', L(buying, 'SupplierPaymentsPage')], ['/purchase-returns', L(buying, 'PurchaseReturnsPage')],
   ['/finance/expenses', L(finance, 'ExpensesPage')], ['/finance/income', L(finance, 'IncomePage')], ['/finance/journal', L(finance, 'JournalPage')], ['/finance/accounts', L(finance, 'AccountsPage')],
   ['/finance/periods', L(finance, 'PeriodsPage')], ['/finance/statements', L(finance, 'StatementsPage')], ['/finance/sessions', L(finance, 'SessionsPage')],
-  ['/admin/branches', L(admin, 'BranchesPage')], ['/admin/warehouses', L(admin, 'WarehousesPage')], ['/admin/registers', L(admin, 'RegistersPage')], ['/admin/employees', L(admin, 'EmployeesPage')],
+  ['/admin/branches', L(admin, 'BranchesPage')], ['/admin/warehouses', L(admin, 'WarehousesPage')], ['/admin/registers', L(admin, 'RegistersPage')], ['/admin/employees', L(admin, 'EmployeesPage')], ['/admin/departments', L(admin, 'DepartmentsPage')],
   ['/admin/users', L(admin, 'UsersPage')], ['/admin/roles', L(admin, 'RolesPage')], ['/admin/catalog-lists', L(admin, 'CatalogListsPage')], ['/admin/tax', L(admin, 'TaxPage')],
   ['/admin/payment-methods', L(admin, 'PaymentMethodsPage')], ['/admin/settings', L(admin, 'SettingsPage')], ['/admin/numbering', L(admin, 'NumberingPage')], ['/admin/devices', L(admin, 'DevicesPage')],
   ['/admin/conflicts', L(admin, 'ConflictsPage')], ['/admin/jobs', L(admin, 'JobsPage')], ['/admin/audit', L(admin, 'AuditPage')],
