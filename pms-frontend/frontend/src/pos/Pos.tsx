@@ -79,6 +79,8 @@ export function Pos() {
 
   const methods = useQuery({ queryKey: ['pos-methods', online], queryFn: async () => { if (!online) return await localList('payment_method'); try { return (await api.list('/payment-methods')).items; } catch { return await localList('payment_method'); } } });
   const activeMethods = (methods.data ?? []).filter((m) => m.is_active).sort((a, b) => a.sort_order - b.sort_order);
+  // Same query as the header BranchPicker, so it shares the cache. Only needed to explain why no branch is selected.
+  const branches = useQuery({ queryKey: ['lookup', '/branches'], staleTime: 300_000, enabled: !branchId && can('branches.read'), queryFn: async () => (await api.list('/branches', { pageSize: 100 })).items });
 
   // ---- cart ----
   const addProduct = useCallback(async (p: LocalProduct, unitId?: string) => {
@@ -110,7 +112,19 @@ export function Pos() {
   useEffect(() => { const h = (e: KeyboardEvent) => { if (e.key === 'F9' && cart.length && !invalid && !blocked) { e.preventDefault(); setPaying(true); } if (e.key === 'F2') { e.preventDefault(); document.getElementById('pos-search')?.focus(); } }; window.addEventListener('keydown', h); return () => window.removeEventListener('keydown', h); }, [cart.length, invalid, blocked]);
 
   if (!can('sales.create')) return <div className="card">You do not have permission to sell.</div>;
-  if (!branchId) return <Spinner text="Choose a branch at the top." />;
+  if (!branchId) {
+    // The header picker selects the first usable branch automatically, so getting here means there is none to pick.
+    if (branches.isLoading) return <Spinner text="Loading branches…" />;
+    if (branches.isError) return <div className="card mx-auto mt-10 max-w-md"><ErrorBox error={branches.error} /></div>;
+    const canManage = can('branches.manage');
+    return (
+      <div className="card mx-auto mt-10 max-w-md space-y-3 text-center">
+        <p className="font-semibold text-slate-900 dark:text-white">There is no active branch you can sell from.</p>
+        <p className="text-sm text-slate-500">{canManage ? 'Add a branch and a cash register for it, then come back here.' : 'Ask an administrator to add a branch or give you access to one.'}</p>
+        {canManage && <Link className="btn-primary inline-block" to="/admin/branches">Go to Branches</Link>}
+      </div>
+    );
+  }
   if (regs.isSuccess && !regs.data.length) return <div className="card">This branch has no active cash register. Ask an administrator to add one.</div>;
   if (ready === 'checking' || ready === 'syncing') return <div className="card mx-auto mt-10 max-w-md text-center"><Spinner text={ready === 'syncing' ? `Preparing this tablet… ${progress}` : 'Starting…'} /></div>;
   if (ready === 'needs-sync') return (
